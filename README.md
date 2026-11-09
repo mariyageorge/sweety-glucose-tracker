@@ -29,7 +29,9 @@ A full-stack healthcare web application designed to help individuals monitor, ma
   - **Daily Report**: View completed vs. missing slots, daily average, lowest, and highest readings.
   - **Month-to-Date (MTD) Report**: Analyzes the calendar range from the 1st of the month through the selected date, calculating period average, slot averages, and compliance rate against the 4 daily slots target.
   - **Previous-Month Report**: Complete analysis of the preceding calendar month, with full support for year rollbacks (e.g., January to December) and leap years (February 29).
+  - **Monthly Glucose Trend Chart**: Interactive, responsive timeline chart illustrating daily average glucose progression across the selected monthly period. Missing days remain unplotted gaps (no data interpolation or fabrication).
   - **Graceful Empty States**: Clean, reassuring empty-state responses when no readings have been recorded for a period.
+- **Reading Table Pagination**: Server-side pagination with page and limit query validation, metadata calculations, and responsive Previous/Next pagination controls.
 - **Neutral Clinical Presentation**: Clear presentation of values in `mg/dL` without speculative medical diagnoses.
 
 ---

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AnyZodObject, ZodError } from "zod";
+import { ZodTypeAny, ZodError } from "zod";
 
 /**
  * Higher-order middleware factory to validate incoming request data using Zod.
@@ -9,7 +9,7 @@ import { AnyZodObject, ZodError } from "zod";
  * database queries prevents garbage data from corrupting system state and gives
  * the frontend clear, field-level error messages.
  */
-export function validateBody(schema: AnyZodObject) {
+export function validateBody(schema: ZodTypeAny) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       req.body = await schema.parseAsync(req.body);
@@ -32,7 +32,7 @@ export function validateBody(schema: AnyZodObject) {
   };
 }
 
-export function validateQuery(schema: AnyZodObject) {
+export function validateQuery(schema: ZodTypeAny) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       req.query = await schema.parseAsync(req.query);
