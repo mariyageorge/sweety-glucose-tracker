@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Slot {
+  MORNING_FASTING
+  AFTER_BREAKFAST
+  AFTER_LUNCH
+  AFTER_DINNER
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String
+  password  String
+  readings  Reading[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Reading {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value        Int
+  slot         Slot
+  recordedDate DateTime @db.Date
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Enforces one reading per slot per day for a user.
+  // With 4 discrete slots, this mathematically guarantees max 4 readings/day.
+  @@unique([userId, recordedDate, slot], name: "unique_user_date_slot")
+  @@index([userId, recordedDate])
+  @@map("readings")
+}
+

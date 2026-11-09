@@ -1,0 +1,24 @@
+{
+  "name": "sweety",
+  "version": "1.0.0",
+  "description": "Sweety – Blood Glucose Tracker",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "test": "npm --prefix backend test",
+    "seed": "npm --prefix backend run prisma:seed",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build"
+  },
+  "keywords": [
+    "glucose-tracker",
+    "health",
+    "react",
+    "express",
+    "prisma",
+    "postgresql",
+    "vitest"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+
