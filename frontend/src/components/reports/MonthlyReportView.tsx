@@ -2,6 +2,7 @@ import React from "react";
 import { Activity, Calendar, CheckCircle2, ArrowDown, ArrowUp, BarChart2 } from "lucide-react";
 import { MonthToDateReport, PreviousMonthReport, Slot, SLOT_CONFIG } from "../../types";
 import { MetricCard } from "./MetricCard";
+import { MonthlyGlucoseChart } from "./MonthlyGlucoseChart";
 
 interface MonthlyReportViewProps {
   report: MonthToDateReport | PreviousMonthReport;
@@ -122,6 +123,12 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
           )}
         </div>
       )}
+
+      {/* Monthly Timeline Chart */}
+      <MonthlyGlucoseChart
+        timeline={report.dailyTimeline || []}
+        title={isMtd ? "Month-to-Date Glucose Trend" : "Previous Month Glucose Trend"}
+      />
 
       {/* Per-Slot Averages Breakdown */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">

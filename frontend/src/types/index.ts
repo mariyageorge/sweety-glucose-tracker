@@ -55,6 +55,13 @@ export interface SlotAverageItem {
   average: number | null;
 }
 
+export interface DailyTimelinePoint {
+  day: number;
+  date: string;
+  average: number | null;
+  count: number;
+}
+
 export interface MonthToDateReport {
   period: {
     type: "month-to-date";
@@ -74,6 +81,7 @@ export interface MonthToDateReport {
     complianceRate: number;
   };
   slotAverages: Record<Slot, SlotAverageItem>;
+  dailyTimeline?: DailyTimelinePoint[];
   hasReadings: boolean;
 }
 
@@ -98,6 +106,7 @@ export interface PreviousMonthReport {
     complianceRate: number;
   };
   slotAverages: Record<Slot, SlotAverageItem>;
+  dailyTimeline?: DailyTimelinePoint[];
   hasReadings: boolean;
 }
 

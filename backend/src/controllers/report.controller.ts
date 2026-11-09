@@ -98,6 +98,55 @@ function computeSlotBreakdown(readings: Array<{ value: number; slot: string }>) 
 }
 
 /**
+ * Helper to calculate day-by-day timeline for monthly charts.
+ * Missing days explicitly have average: null (never interpolated or fabricated).
+ */
+function computeDailyTimeline(
+  year: number,
+  month: number,
+  startDay: number,
+  endDay: number,
+  readings: Array<{ value: number; recordedDate: Date }>
+) {
+  const timeline: Array<{
+    day: number;
+    date: string;
+    average: number | null;
+    count: number;
+  }> = [];
+  const monthStr = String(month).padStart(2, "0");
+
+  for (let d = startDay; d <= endDay; d++) {
+    const dayStr = String(d).padStart(2, "0");
+    const dateStr = `${year}-${monthStr}-${dayStr}`;
+
+    const dayReadings = readings.filter(
+      (r) => formatDateOnly(r.recordedDate) === dateStr
+    );
+
+    if (dayReadings.length > 0) {
+      const sum = dayReadings.reduce((acc, r) => acc + r.value, 0);
+      const avg = Math.round((sum / dayReadings.length) * 10) / 10;
+      timeline.push({
+        day: d,
+        date: dateStr,
+        average: avg,
+        count: dayReadings.length,
+      });
+    } else {
+      timeline.push({
+        day: d,
+        date: dateStr,
+        average: null,
+        count: 0,
+      });
+    }
+  }
+
+  return timeline;
+}
+
+/**
  * 1. GET /api/reports/daily?date=YYYY-MM-DD
  */
 export async function getDailyReport(
@@ -137,11 +186,11 @@ export async function getDailyReport(
         logged: Boolean(match),
         reading: match
           ? {
-              id: match.id,
-              value: match.value,
-              notes: match.notes,
-              createdAt: match.createdAt,
-            }
+            id: match.id,
+            value: match.value,
+            notes: match.notes,
+            createdAt: match.createdAt,
+          }
           : null,
       };
     });
@@ -215,12 +264,13 @@ export async function getMonthToDateReport(
     });
 
     // Calculate days elapsed in the month up to selectedDate
-    const [, , day] = selectedDate.split("-").map(Number);
-    const totalDays = day;
+    const [yearNum, monthNum, dayNum] = selectedDate.split("-").map(Number);
+    const totalDays = dayNum;
     const expectedReadings = totalDays * 4;
 
     const summary = computeSummary(readings);
     const slotAverages = computeSlotBreakdown(readings);
+    const dailyTimeline = computeDailyTimeline(yearNum, monthNum, 1, dayNum, readings);
 
     // Count distinct calendar days with readings
     const distinctDays = new Set(readings.map((r) => formatDateOnly(r.recordedDate))).size;
@@ -244,6 +294,7 @@ export async function getMonthToDateReport(
           complianceRate,
         },
         slotAverages,
+        dailyTimeline,
         hasReadings: readings.length > 0,
       },
     });
@@ -295,6 +346,7 @@ export async function getPreviousMonthReport(
 
     const summary = computeSummary(readings);
     const slotAverages = computeSlotBreakdown(readings);
+    const dailyTimeline = computeDailyTimeline(year, month, 1, totalDays, readings);
 
     const distinctDays = new Set(readings.map((r) => formatDateOnly(r.recordedDate))).size;
     const complianceRate =
@@ -325,6 +377,7 @@ export async function getPreviousMonthReport(
           complianceRate,
         },
         slotAverages,
+        dailyTimeline,
         hasReadings: readings.length > 0,
       },
     });
