@@ -204,6 +204,28 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
+### 3. Run with Docker (Containerized Multi-Service Deployment)
+You can launch the complete application stack (PostgreSQL database, Node.js Express backend, and Nginx-served React frontend) in isolated containers with a single command:
+
+```bash
+docker compose up --build
+```
+
+Services exposed:
+- **Frontend Web Dashboard**: [`http://localhost:5173`](http://localhost:5173)
+- **Backend REST API**: [`http://localhost:5000`](http://localhost:5000)
+- **PostgreSQL Database Engine**: `localhost:5432`
+
+To run in detached mode (background):
+```bash
+docker compose up -d --build
+```
+
+To tear down containers while keeping database data volumes:
+```bash
+docker compose down
+```
+
 ---
 
 ## 🧪 Running Tests & Production Builds

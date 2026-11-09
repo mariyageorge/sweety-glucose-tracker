@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sweety-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sweety_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sweety_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-sweety_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-sweety_user} -d $${POSTGRES_DB:-sweety_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sweety-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sweety_user}:${POSTGRES_PASSWORD:-sweety_secure_password}@postgres:5432/${POSTGRES_DB:-sweety_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-sweety_production_super_secret_jwt_key_at_least_32_characters}
+      JWT_EXPIRES_IN: 7d
+      CLIENT_URL: http://localhost:5173
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/server.js"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sweety-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
