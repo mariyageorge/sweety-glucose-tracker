@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -27,27 +27,43 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              isDestructive ? "bg-rose-50 text-rose-600" : "bg-teal-50 text-teal-600"
-            }`}
-          >
-            <AlertTriangle className="w-5 h-5" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-[#FAF7F2] rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-warm-lg border border-stone-200/80">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
+                isDestructive
+                  ? "bg-peach-50 text-peach-600 border-peach-200"
+                  : "bg-sage-50 text-sage-600 border-sage-200"
+              }`}
+            >
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-stone-900 tracking-tight">{title}</h3>
+              <p className="text-xs text-stone-500 mt-0.5">Please confirm your decision</p>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-200/60 rounded-xl transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        <p className="text-sm text-slate-600 mb-6">{message}</p>
+        <div className="bg-white rounded-2xl p-4 border border-stone-200/60 mb-6">
+          <p className="text-xs text-stone-600 leading-relaxed font-medium">{message}</p>
+        </div>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-2.5">
           <button
             type="button"
             disabled={loading}
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            className="px-4 py-2.5 text-xs font-semibold text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-100 rounded-xl border border-stone-200 transition-colors"
           >
             {cancelLabel}
           </button>
@@ -55,11 +71,11 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             type="button"
             disabled={loading}
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+            className={`px-5 py-2.5 text-xs font-bold text-white rounded-xl shadow-warm-sm transition-all disabled:opacity-50 ${
               isDestructive
-                ? "bg-rose-600 hover:bg-rose-700"
-                : "bg-teal-600 hover:bg-teal-700"
-            } ${loading ? "opacity-75 cursor-not-allowed" : ""}`}
+                ? "bg-peach-500 hover:bg-peach-600 active:bg-peach-600"
+                : "bg-sage-600 hover:bg-sage-700 active:bg-sage-800"
+            }`}
           >
             {loading ? "Processing..." : confirmLabel}
           </button>
@@ -68,4 +84,3 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     </div>
   );
 };
-

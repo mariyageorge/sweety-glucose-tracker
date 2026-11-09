@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Calendar, RefreshCw } from "lucide-react";
+import { Calendar, RefreshCw, Sparkles } from "lucide-react";
 import { DailyReport, MonthToDateReport, PreviousMonthReport } from "../types";
 import { reportsApi, getErrorMessage } from "../services/api";
 import { DailyReportView } from "../components/reports/DailyReportView";
@@ -63,81 +63,84 @@ export const ReportsPage: React.FC = () => {
   }, [fetchReport]);
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <Toast toasts={toasts} onDismiss={removeToast} />
 
-      {/* Top Header Card with Segmented Controls & Date Filter */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Top Header Section: Soft Lavender Background */}
+      <div className="bg-[#E8E5FA] p-6 sm:p-7 rounded-[2rem] border border-[#D5CEF5] shadow-pastel-lavender flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-            Glucose Reports & Analysis
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Review daily slot tracking, month-to-date compliance, and previous month trends.
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#342D38] tracking-tight">
+              Glucose Reports & Rhythm
+            </h2>
+            <Sparkles className="w-5 h-5 text-[#4E3E8C]" />
+          </div>
+          <p className="text-xs text-[#342D38]/80 font-bold mt-1">
+            Review daily slot tracking, month-to-date compliance, and previous calendar month patterns.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Segmented Tab Buttons */}
-          <div className="bg-slate-100 p-1 rounded-2xl flex items-center">
+          <div className="bg-white/80 p-1.5 rounded-2xl flex items-center border border-[#D5CEF5] shadow-xs">
             <button
               onClick={() => setActiveTab("daily")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
                 activeTab === "daily"
-                  ? "bg-white text-teal-800 shadow-xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#4E3E8C] text-white shadow-pastel-lavender"
+                  : "text-[#4E3E8C] hover:bg-white/70"
               }`}
             >
               Daily
             </button>
             <button
               onClick={() => setActiveTab("mtd")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
                 activeTab === "mtd"
-                  ? "bg-white text-teal-800 shadow-xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#4E3E8C] text-white shadow-pastel-lavender"
+                  : "text-[#4E3E8C] hover:bg-white/70"
               }`}
             >
-              Month-to-Date
+              Month to Date
             </button>
             <button
               onClick={() => setActiveTab("prev")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
                 activeTab === "prev"
-                  ? "bg-white text-teal-800 shadow-xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#4E3E8C] text-white shadow-pastel-lavender"
+                  : "text-[#4E3E8C] hover:bg-white/70"
               }`}
             >
               Previous Month
             </button>
           </div>
 
-          {/* Date Picker */}
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <Calendar className="w-4 h-4 text-slate-400" />
+          {/* Date Selector */}
+          <div className="flex items-center gap-2 bg-white/90 px-3.5 py-2 rounded-2xl border border-[#D5CEF5] shadow-xs">
+            <Calendar className="w-4 h-4 text-[#4E3E8C]" />
             <input
               type="date"
               max={getTodayString()}
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-extrabold text-[#342D38] focus:outline-none cursor-pointer"
             />
           </div>
 
           <button
             onClick={fetchReport}
-            title="Refresh Report"
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+            title="Refresh report"
+            className="p-2.5 text-[#4E3E8C] bg-white/90 hover:bg-white rounded-2xl transition-all border border-[#D5CEF5] shadow-xs"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Report Content */}
+      {/* Main Report Body */}
       {loading ? (
         <div className="py-24 flex justify-center">
-          <LoadingSpinner size="lg" label="Generating glucose analytics..." />
+          <LoadingSpinner size="lg" label="Analyzing glucose patterns..." />
         </div>
       ) : (
         <>
@@ -148,16 +151,16 @@ export const ReportsPage: React.FC = () => {
           {activeTab === "mtd" && mtdReport && (
             <MonthlyReportView
               report={mtdReport}
-              title="Month-to-Date Performance"
-              subtitle={`Detailed analytics from the 1st of the month through ${selectedDate}.`}
+              title="Month-to-Date Health Rhythm"
+              subtitle={`Analysis from ${mtdReport.period.startDate} through ${mtdReport.period.endDate} (${mtdReport.period.totalDays} days)`}
             />
           )}
 
           {activeTab === "prev" && prevReport && (
             <MonthlyReportView
               report={prevReport}
-              title="Previous Month Performance"
-              subtitle={`Complete monthly analytics for ${prevReport.period.monthName}.`}
+              title={`Full Calendar Summary &bull; ${prevReport.period.monthName}`}
+              subtitle={`Complete previous calendar month from ${prevReport.period.startDate} to ${prevReport.period.endDate}`}
             />
           )}
         </>
@@ -165,4 +168,3 @@ export const ReportsPage: React.FC = () => {
     </div>
   );
 };
-

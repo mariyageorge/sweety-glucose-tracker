@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, Sunrise, Coffee, Sun, Moon, Calendar, Activity } from "lucide-react";
 import { Slot, Reading, SLOT_CONFIG } from "../../types";
 import { readingsApi, getErrorMessage } from "../../services/api";
 
@@ -20,7 +20,6 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
   defaultDate,
   defaultSlot,
 }) => {
-  // Get today's ISO date string YYYY-MM-DD
   const getTodayString = () => new Date().toISOString().split("T")[0];
 
   const [date, setDate] = useState<string>(defaultDate || getTodayString());
@@ -56,7 +55,7 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
     // 1. Client-side validation
     const numValue = Number(value);
     if (!value || isNaN(numValue)) {
-      setError("Please enter a valid blood glucose number.");
+      setError("Please enter a valid blood glucose level.");
       return;
     }
     if (!Number.isInteger(numValue)) {
@@ -68,7 +67,7 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
       return;
     }
     if (date > getTodayString()) {
-      setError("Readings cannot be logged for future dates.");
+      setError("Readings cannot be recorded for future dates.");
       return;
     }
 
@@ -102,22 +101,35 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
 
   const isEdit = Boolean(initialReading);
 
+  const slotOptions: Array<{ id: Slot; label: string; icon: React.ReactNode; bg: string; border: string; text: string }> = [
+    { id: "MORNING_FASTING", label: "Fasting", icon: <Sunrise className="w-4 h-4 text-[#8E3737]" />, bg: "bg-[#FCE8E6]", border: "border-[#F7CCD0]", text: "text-[#8E3737]" },
+    { id: "AFTER_BREAKFAST", label: "Breakfast", icon: <Coffee className="w-4 h-4 text-[#825712]" />, bg: "bg-[#FBE8C9]", border: "border-[#F6D39D]", text: "text-[#825712]" },
+    { id: "AFTER_LUNCH", label: "Lunch", icon: <Sun className="w-4 h-4 text-[#2E5436]" />, bg: "bg-[#E3F0E5]", border: "border-[#C6E2CB]", text: "text-[#2E5436]" },
+    { id: "AFTER_DINNER", label: "Dinner", icon: <Moon className="w-4 h-4 text-[#4E3E8C]" />, bg: "bg-[#E8E5FA]", border: "border-[#D5CEF5]", text: "text-[#4E3E8C]" },
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/35 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-[2.5rem] max-w-lg w-full p-6 sm:p-8 shadow-pastel-lavender border border-[#D5CEF5] max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              {isEdit ? "Edit Blood Glucose Reading" : "Log Blood Glucose Reading"}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Enter your measured reading value and time slot.
-            </p>
+        <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#E8E5FA] border border-[#D5CEF5] flex items-center justify-center text-[#4E3E8C] shadow-xs">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-[#342D38] tracking-tight">
+                {isEdit ? "Edit Glucose Reading" : "Log Glucose Reading"}
+              </h3>
+              <p className="text-xs text-[#342D38]/70 font-semibold mt-0.5">
+                Record your blood glucose level and measurement slot
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+            aria-label="Close dialog"
+            className="p-2 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,54 +137,71 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
 
         {/* Error Alert */}
         {error && (
-          <div className="mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-800">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <p className="font-medium leading-relaxed">{error}</p>
+          <div className="mt-4 p-3.5 bg-[#FCE8E6] border border-[#F7CCD0] rounded-2xl flex items-start gap-2.5 text-xs text-[#8E3737] animate-in fade-in">
+            <AlertCircle className="w-4 h-4 text-[#8E3737] shrink-0 mt-0.5" />
+            <p className="font-extrabold leading-relaxed">{error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {/* Date Picker */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-extrabold text-[#342D38] uppercase tracking-wider mb-1.5">
               Reading Date
             </label>
-            <input
-              type="date"
-              max={getTodayString()}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all font-medium text-slate-800"
-            />
+            <div className="relative">
+              <input
+                type="date"
+                max={getTodayString()}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full pl-10 pr-4 py-3 text-xs font-bold bg-[#FAF6F0] border border-[#E5DCF5] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#D5CEF5] focus:border-[#4E3E8C] transition-all text-[#342D38] cursor-pointer"
+              />
+              <Calendar className="w-4 h-4 text-[#4E3E8C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
-          {/* Slot Selector */}
+          {/* Slot Selection Buttons in Pastels */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Measurement Slot
-            </label>
-            <select
-              value={slot}
-              onChange={(e) => setSlot(e.target.value as Slot)}
-              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all font-medium text-slate-800"
-            >
-              {(Object.keys(SLOT_CONFIG) as Slot[]).map((key) => (
-                <option key={key} value={key}>
-                  {SLOT_CONFIG[key].label} ({SLOT_CONFIG[key].timing})
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-extrabold text-[#342D38] uppercase tracking-wider">
+                Measurement Slot
+              </label>
+              <span className="text-[11px] font-bold text-[#8A7D91]">
+                {SLOT_CONFIG[slot]?.timing}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {slotOptions.map((opt) => {
+                const isSelected = slot === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setSlot(opt.id)}
+                    className={`flex items-center justify-center gap-1.5 p-3 rounded-2xl border text-xs font-extrabold transition-all ${
+                      isSelected
+                        ? `${opt.bg} ${opt.text} ${opt.border} ring-2 ring-black/10 shadow-xs scale-[1.02]`
+                        : `${opt.bg}/40 ${opt.text} ${opt.border} hover:opacity-100 opacity-70`
+                    }`}
+                  >
+                    {opt.icon}
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Glucose Value */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              <label className="block text-xs font-extrabold text-[#342D38] uppercase tracking-wider">
                 Glucose Level
               </label>
-              <span className="text-xs text-slate-400 font-medium">40 – 600 mg/dL</span>
+              <span className="text-[11px] text-[#8A7D91] font-bold">40 – 600 mg/dL</span>
             </div>
             <div className="relative">
               <input
@@ -184,9 +213,9 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 required
-                className="w-full pl-3.5 pr-16 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all font-medium text-slate-900"
+                className="w-full pl-4 pr-16 py-3 text-lg font-extrabold bg-[#FAF6F0] border border-[#E5DCF5] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#D5CEF5] focus:border-[#4E3E8C] transition-all text-[#342D38] placeholder:text-stone-300"
               />
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none uppercase">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-extrabold text-[#8A7D91] uppercase tracking-wider pointer-events-none">
                 mg/dL
               </div>
             </div>
@@ -194,36 +223,36 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
 
           {/* Optional Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Notes <span className="text-slate-400 font-normal lowercase">(optional)</span>
+            <label className="block text-xs font-extrabold text-[#342D38] uppercase tracking-wider mb-1.5">
+              Personal Notes <span className="text-stone-400 font-normal lowercase">(optional)</span>
             </label>
             <textarea
               rows={2}
               maxLength={250}
-              placeholder="e.g. 30 min walk before measurement, heavy dinner..."
+              placeholder="e.g. 30 min morning walk, feeling relaxed..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all text-slate-800 resize-none placeholder:text-slate-400"
+              className="w-full px-4 py-2.5 text-xs bg-[#FAF6F0] border border-[#E5DCF5] rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#D5CEF5] focus:border-[#4E3E8C] transition-all text-[#342D38] resize-none placeholder:text-stone-400 font-semibold"
             />
-            <p className="text-[11px] text-slate-400 text-right mt-1">
+            <p className="text-[10px] text-[#8A7D91] text-right mt-1 font-bold">
               {notes.length}/250 characters
             </p>
           </div>
 
-          {/* Actions */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          {/* Modal Actions */}
+          <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-3">
             <button
               type="button"
               disabled={loading}
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-extrabold text-[#342D38] hover:bg-stone-100 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 active:bg-teal-800 rounded-xl shadow-sm transition-all disabled:opacity-50"
+              className="px-6 py-2.5 text-xs font-extrabold text-white bg-[#4E3E8C] hover:bg-[#3D2E73] active:bg-[#30225E] rounded-2xl shadow-pastel-lavender transition-all disabled:opacity-50"
             >
               {loading ? "Saving..." : isEdit ? "Update Reading" : "Save Reading"}
             </button>
@@ -233,4 +262,3 @@ export const ReadingModal: React.FC<ReadingModalProps> = ({
     </div>
   );
 };
-
