@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, Calendar, Filter, X, Edit2, Trash2 } from "lucide-react";
-import { Reading, SLOT_CONFIG } from "../types";
+import { Plus, Calendar, Filter, X, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Reading, SLOT_CONFIG, PaginationMetadata } from "../types";
 import { readingsApi, getErrorMessage } from "../services/api";
 import { ReadingModal } from "../components/readings/ReadingModal";
 import { ConfirmationModal } from "../components/common/ConfirmationModal";
@@ -12,6 +12,9 @@ export const ReadingsPage: React.FC = () => {
 
   const [readings, setReadings] = useState<Reading[]>([]);
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [limit] = useState<number>(10);
+  const [pagination, setPagination] = useState<PaginationMetadata | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Modals state
@@ -40,14 +43,19 @@ export const ReadingsPage: React.FC = () => {
   const fetchReadings = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await readingsApi.getReadings(dateFilter || undefined);
-      setReadings(data);
+      const res = await readingsApi.getPaginatedReadings({
+        date: dateFilter || undefined,
+        page,
+        limit,
+      });
+      setReadings(res.readings);
+      setPagination(res.pagination);
     } catch (err) {
       addToast("error", getErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, [dateFilter]);
+  }, [dateFilter, page, limit]);
 
   useEffect(() => {
     fetchReadings();
@@ -102,12 +110,18 @@ export const ReadingsPage: React.FC = () => {
               type="date"
               max={getTodayString()}
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setPage(1);
+              }}
               className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
             />
             {dateFilter && (
               <button
-                onClick={() => setDateFilter("")}
+                onClick={() => {
+                  setDateFilter("");
+                  setPage(1);
+                }}
                 title="Clear filter"
                 className="text-slate-400 hover:text-slate-600"
               >
@@ -231,6 +245,55 @@ export const ReadingsPage: React.FC = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && pagination && pagination.total > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 bg-slate-50/70 border-t border-slate-100 text-xs">
+            <div className="text-slate-500 font-medium">
+              Showing{" "}
+              <span className="font-bold text-slate-800">
+                {(pagination.page - 1) * pagination.limit + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-bold text-slate-800">
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
+              </span>{" "}
+              of <span className="font-bold text-slate-800">{pagination.total}</span> readings
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={!pagination.hasPrevPage}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold border transition-colors ${
+                  pagination.hasPrevPage
+                    ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 shadow-xs"
+                    : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+
+              <span className="px-3 py-1.5 bg-white text-slate-700 font-bold border border-slate-200 rounded-xl shadow-xs">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!pagination.hasNextPage}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold border transition-colors ${
+                  pagination.hasNextPage
+                    ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 shadow-xs"
+                    : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
+              >
+                <span>Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -110,12 +110,22 @@ export interface PreviousMonthReport {
   hasReadings: boolean;
 }
 
+export interface PaginationMetadata {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data?: T;
   error?: string;
   count?: number;
+  pagination?: PaginationMetadata;
 }
 
 export const SLOT_CONFIG: Record<

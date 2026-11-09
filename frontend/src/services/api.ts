@@ -6,6 +6,7 @@ import {
   MonthToDateReport,
   PreviousMonthReport,
   ApiResponse,
+  PaginationMetadata,
   Slot,
 } from "../types";
 
@@ -80,11 +81,32 @@ export interface UpdateReadingPayload {
   notes?: string;
 }
 
+export interface GetReadingsParams {
+  date?: string;
+  page?: number;
+  limit?: number;
+}
+
 export const readingsApi = {
-  async getReadings(date?: string): Promise<Reading[]> {
-    const params = date ? { date } : {};
+  async getReadings(paramsOrDate?: string | GetReadingsParams): Promise<Reading[]> {
+    const params = typeof paramsOrDate === "string" ? { date: paramsOrDate } : (paramsOrDate || {});
     const res = await api.get<ApiResponse<Reading[]>>("/readings", { params });
     return res.data.data || [];
+  },
+
+  async getPaginatedReadings(params?: GetReadingsParams): Promise<{ readings: Reading[]; pagination: PaginationMetadata }> {
+    const res = await api.get<ApiResponse<Reading[]>>("/readings", { params });
+    return {
+      readings: res.data.data || [],
+      pagination: res.data.pagination || {
+        total: res.data.data?.length || 0,
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+    };
   },
 
   async getReadingById(id: string): Promise<Reading> {
