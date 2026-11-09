@@ -411,5 +411,85 @@ describe("Glucose Reading CRUD API (/api/readings)", () => {
       expect(res.status).toBe(401);
     });
   });
+
+  describe("7. Pagination & Query Validation", () => {
+    it("supports pagination with page and limit parameters", async () => {
+      const res = await request(app)
+        .get(`/api/readings?date=${testDate}&page=1&limit=2`)
+        .set("Cookie", [cookieA]);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.count).toBe(2);
+      expect(res.body.data.length).toBe(2);
+      expect(res.body.pagination).toBeDefined();
+      expect(res.body.pagination.page).toBe(1);
+      expect(res.body.pagination.limit).toBe(2);
+      expect(res.body.pagination.total).toBe(3); // 4 originally created, 1 deleted
+      expect(res.body.pagination.totalPages).toBe(2);
+      expect(res.body.pagination.hasNextPage).toBe(true);
+      expect(res.body.pagination.hasPrevPage).toBe(false);
+    });
+
+    it("fetches the second page correctly without duplicate records", async () => {
+      const page1 = await request(app)
+        .get(`/api/readings?date=${testDate}&page=1&limit=2`)
+        .set("Cookie", [cookieA]);
+
+      const page2 = await request(app)
+        .get(`/api/readings?date=${testDate}&page=2&limit=2`)
+        .set("Cookie", [cookieA]);
+
+      expect(page2.status).toBe(200);
+      expect(page2.body.count).toBe(1);
+      expect(page2.body.pagination.page).toBe(2);
+      expect(page2.body.pagination.hasNextPage).toBe(false);
+      expect(page2.body.pagination.hasPrevPage).toBe(true);
+
+      const page1Ids = page1.body.data.map((r: any) => r.id);
+      const page2Ids = page2.body.data.map((r: any) => r.id);
+      expect(page1Ids).not.toContain(page2Ids[0]);
+    });
+
+    it("rejects non-positive page number with 400 Bad Request", async () => {
+      const res = await request(app)
+        .get("/api/readings?page=0")
+        .set("Cookie", [cookieA]);
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(JSON.stringify(res.body.details)).toMatch(/at least 1/i);
+    });
+
+    it("rejects limit exceeding 100 with 400 Bad Request", async () => {
+      const res = await request(app)
+        .get("/api/readings?limit=101")
+        .set("Cookie", [cookieA]);
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(JSON.stringify(res.body.details)).toMatch(/cannot exceed 100/i);
+    });
+
+    it("rejects non-integer page with 400 Bad Request", async () => {
+      const res = await request(app)
+        .get("/api/readings?page=abc")
+        .set("Cookie", [cookieA]);
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it("preserves strict multi-tenant isolation in paginated requests", async () => {
+      const resB = await request(app)
+        .get(`/api/readings?date=${testDate}&page=1&limit=10`)
+        .set("Cookie", [cookieB]);
+
+      expect(resB.status).toBe(200);
+      expect(resB.body.pagination.total).toBe(1);
+      expect(resB.body.data.length).toBe(1);
+      expect(resB.body.data[0].userId).toBe(userB.id);
+    });
+  });
 });
 

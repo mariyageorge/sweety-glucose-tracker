@@ -98,13 +98,34 @@ export async function getReadings(
       whereClause.recordedDate = parseDateOnly(dateFilter);
     }
 
-    const readings = await prisma.reading.findMany({
-      where: whereClause,
-      orderBy: [
-        { recordedDate: "desc" },
-        { createdAt: "asc" },
-      ],
-    });
+    // Check if explicit pagination query parameters are provided
+    const hasPaginationParams = req.query.page !== undefined || req.query.limit !== undefined;
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Number(req.query.limit) : (hasPaginationParams ? 10 : undefined);
+
+    const total = await prisma.reading.count({ where: whereClause });
+
+    let readings;
+    if (limit !== undefined) {
+      const skip = (page - 1) * limit;
+      readings = await prisma.reading.findMany({
+        where: whereClause,
+        orderBy: [
+          { recordedDate: "desc" },
+          { createdAt: "asc" },
+        ],
+        skip,
+        take: limit,
+      });
+    } else {
+      readings = await prisma.reading.findMany({
+        where: whereClause,
+        orderBy: [
+          { recordedDate: "desc" },
+          { createdAt: "asc" },
+        ],
+      });
+    }
 
     // Consistent chronological sort by date (desc) and slot (asc: fasting -> breakfast -> lunch -> dinner)
     readings.sort((a, b) => {
@@ -124,9 +145,20 @@ export async function getReadings(
       updatedAt: r.updatedAt,
     }));
 
+    const effectiveLimit = limit || (total > 0 ? total : 1);
+    const totalPages = Math.ceil(total / effectiveLimit) || 1;
+
     res.status(200).json({
       success: true,
       count: formatted.length,
+      pagination: {
+        total,
+        page,
+        limit: limit || total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
       data: formatted,
     });
   } catch (err) {

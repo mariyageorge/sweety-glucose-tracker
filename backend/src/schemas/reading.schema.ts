@@ -74,6 +74,17 @@ export const getReadingsQuerySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
     .optional(),
+  page: z.coerce
+    .number()
+    .int("Page must be a whole integer")
+    .min(1, "Page must be at least 1")
+    .optional(),
+  limit: z.coerce
+    .number()
+    .int("Limit must be a whole integer")
+    .min(1, "Limit must be at least 1")
+    .max(100, "Limit cannot exceed 100")
+    .optional(),
 });
 
 export type CreateReadingInput = z.infer<typeof createReadingSchema>;
